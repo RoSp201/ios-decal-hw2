@@ -21,9 +21,8 @@ class ViewController: UIViewController {
     
     // TODO: This looks like a good place to add some data structures.
     //       One data structure is initialized below for reference.
-    var someDataStructure: [String] = [""]
+    var data: [String] = []
     
-
     override func viewDidLoad() {
         super.viewDidLoad()
         view = UIView(frame: UIScreen.main.bounds)
@@ -46,13 +45,18 @@ class ViewController: UIViewController {
     // TODO: A method to update your data structure(s) would be nice.
     //       Modify this one or create your own.
     func updateSomeDataStructure(_ content: String) {
-        print("Update me like one of those PCs")
+        data.append(content)
+        var str = ""
+        for e in data {
+            str = str + e + " "
+        }
+        print(str)
     }
     
     // TODO: Ensure that resultLabel gets updated.
     //       Modify this one or create your own.
     func updateResultLabel(_ content: String) {
-        print("Update me like one of those PCs")
+        resultLabel.text! = content
     }
     
     
@@ -66,14 +70,39 @@ class ViewController: UIViewController {
     //       Modify this one or create your own.
     func intCalculate(a: Int, b:Int, operation: String) -> Int {
         print("Calculation requested for \(a) \(operation) \(b)")
-        return 0
+        switch operation {
+            case "+":
+                return a + b
+            case "-":
+                return a - b
+            case "*":
+                return a * b
+        default:
+            print("this is an int error")
+            return a
+        }
     }
     
     // TODO: A general calculate method for doubles
     //       Modify this one or create your own.
     func calculate(a: String, b:String, operation: String) -> Double {
         print("Calculation requested for \(a) \(operation) \(b)")
-        return 0.0
+        let x = (a as NSString).doubleValue
+        let y = (b as NSString).doubleValue
+        switch operation {
+        case "+":
+            return x + y
+        case "-":
+            return x - y
+        case "*":
+            return x * y
+        case "/":
+            return x / y
+        default:
+            print("this was an int error")
+            return x
+        }
+
     }
     
     // REQUIRED: The responder to a number button being pressed.
@@ -81,16 +110,117 @@ class ViewController: UIViewController {
         guard Int(sender.content) != nil else { return }
         print("The number \(sender.content) was pressed")
         // Fill me in!
+        
+        //add the first digit after cleared or first time
+        if (resultLabel.text?.characters.count)! == 1 && resultLabel.text! == "0" {
+            updateResultLabel(sender.content)
+            updateSomeDataStructure(sender.content)
+        }
+        //extend first operand's digits
+        else if (resultLabel.text?.characters.count)! < 7 && data.count == 1 {
+            updateResultLabel(resultLabel.text! + sender.content)
+            data[0] = data[0] + sender.content
+        }
+        //add second operand
+        else if data.count == 2 {
+            updateResultLabel(sender.content)
+            updateSomeDataStructure(sender.content)
+        }
+        //extend second operand if already exists
+        else if data.count == 3 && (resultLabel.text?.characters.count)! < 7 {
+                updateResultLabel(resultLabel.text! + sender.content)
+                data[2] = data[2] + sender.content
+        }
     }
     
     // REQUIRED: The responder to an operator button being pressed.
     func operatorPressed(_ sender: CustomButton) {
         // Fill me in!
+        switch sender.content {
+            case "C":
+                data.removeAll()
+                updateResultLabel(calculate())
+            case "+/-":
+                if (resultLabel.text?.characters.count)! == 1 && resultLabel.text! == "0" {
+                    updateResultLabel("-" + resultLabel.text!)
+                    updateSomeDataStructure("-" + resultLabel.text!)
+                }
+                else if (resultLabel.text?.characters.first)! == "-" {
+                    updateResultLabel(resultLabel.text!.replacingOccurrences(of: "-", with: ""))
+                    data[0] = data[0].replacingOccurrences(of: "-", with: "")
+                }
+                else if (resultLabel.text?.characters.count)! < 7 {
+                    updateResultLabel("-" + resultLabel.text!)
+                    data[0] = "-" + data[0]
+                }
+            case "+":
+                if (data.count) == 3 {
+                    updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
+                    if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
+                        updateResultLabel(String((data.first! as NSString).integerValue))
+                    } else {
+                        updateResultLabel(data.first!)
+                    }
+                    print("length: " + String(data.count))
+                }
+                print(data.first!)
+                updateSomeDataStructure(sender.content)
+            case "-":
+                if (data.count) == 3 {
+                    updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
+                    if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
+                        updateResultLabel(String((data.first! as NSString).integerValue))
+                    } else {
+                        updateResultLabel(data.first!)
+                    }
+                    print("length: " + String(data.count))
+                }
+                print(data.first!)
+                updateSomeDataStructure(sender.content)
+            case "*":
+                if (data.count) == 3 {
+                    updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
+                    if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
+                        updateResultLabel(String((data.first! as NSString).integerValue))
+                    } else {
+                        updateResultLabel(data.first!)
+                    }
+                    print("length: " + String(data.count))
+                }
+                print(data.first!)
+                updateSomeDataStructure(sender.content)
+            case "/":
+                if (data.count) == 3 {
+                    updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
+                    if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
+                        updateResultLabel(String((data.first! as NSString).integerValue))
+                    } else {
+                        updateResultLabel(data.first!)
+                    }
+                    print("length: " + String(data.count))
+                }
+                print(data.first!)
+                updateSomeDataStructure(sender.content)
+            case "=":
+                if (data.count) == 3 {
+                    updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
+                    if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
+                        updateResultLabel(String((data.first! as NSString).integerValue))
+                    } else {
+                        updateResultLabel(data.first!)
+                    }
+                    print("length: " + String(data.count))
+                }
+                print(data.first!)
+            default:
+                return
+        }
     }
     
     // REQUIRED: The responder to a number or operator button being pressed.
     func buttonPressed(_ sender: CustomButton) {
        // Fill me in!
+       
     }
     
     // IMPORTANT: Do NOT change any of the code below.
