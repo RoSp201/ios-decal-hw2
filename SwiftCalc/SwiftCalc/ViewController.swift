@@ -53,38 +53,19 @@ class ViewController: UIViewController {
         print(str)
     }
     
-    // TODO: Ensure that resultLabel gets updated.
-    //       Modify this one or create your own.
+    //Ensure that resultLabel gets updated.
     func updateResultLabel(_ content: String) {
         resultLabel.text! = content
     }
     
     
-    // TODO: A calculate method with no parameters, scary!
-    //       Modify this one or create your own.
+    //A calculate method with no parameters, scary!
     func calculate() -> String {
         return "0"
     }
     
-    // TODO: A simple calculate method for integers.
-    //       Modify this one or create your own.
-    func intCalculate(a: Int, b:Int, operation: String) -> Int {
-        print("Calculation requested for \(a) \(operation) \(b)")
-        switch operation {
-            case "+":
-                return a + b
-            case "-":
-                return a - b
-            case "*":
-                return a * b
-        default:
-            print("this is an int error")
-            return a
-        }
-    }
-    
-    // TODO: A general calculate method for doubles
-    //       Modify this one or create your own.
+ 
+    //A general calculate method for doubles
     func calculate(a: String, b:String, operation: String) -> Double {
         print("Calculation requested for \(a) \(operation) \(b)")
         let x = (a as NSString).doubleValue
@@ -97,19 +78,22 @@ class ViewController: UIViewController {
         case "*":
             return x * y
         case "/":
-            return x / y
+            if y == 0.0 {
+                print("zero division error")
+                return x
+            }else {
+                return x / y
+            }
         default:
-            print("this was an int error")
+            print("this was an error in the calculation")
             return x
         }
-
     }
     
     // REQUIRED: The responder to a number button being pressed.
     func numberPressed(_ sender: CustomButton) {
         guard Int(sender.content) != nil else { return }
         print("The number \(sender.content) was pressed")
-        // Fill me in!
         
         //add the first digit after cleared or first time
         if (resultLabel.text?.characters.count)! == 1 && resultLabel.text! == "0" {
@@ -128,99 +112,198 @@ class ViewController: UIViewController {
         }
         //extend second operand if already exists
         else if data.count == 3 && (resultLabel.text?.characters.count)! < 7 {
-                updateResultLabel(resultLabel.text! + sender.content)
-                data[2] = data[2] + sender.content
+            updateResultLabel(resultLabel.text! + sender.content)
+            data[2] = data[2] + sender.content
         }
     }
     
     // REQUIRED: The responder to an operator button being pressed.
     func operatorPressed(_ sender: CustomButton) {
-        // Fill me in!
+        
         switch sender.content {
+            
             case "C":
                 data.removeAll()
                 updateResultLabel(calculate())
+            
             case "+/-":
-                if (resultLabel.text?.characters.count)! == 1 && resultLabel.text! == "0" {
-                    updateResultLabel("-" + resultLabel.text!)
-                    updateSomeDataStructure("-" + resultLabel.text!)
+                if (resultLabel.text?.characters.count)! == 1 && resultLabel.text! == "0" && (data.count == 0 || data.count == 2) {
+                    updateResultLabel(sender.content)
+                    updateSomeDataStructure(sender.content)
                 }
-                else if (resultLabel.text?.characters.first)! == "-" {
+                else if (resultLabel.text?.characters.first)! != "-" && (resultLabel.text?.characters.count)! < 7 && data.count == 3 {
+                    updateResultLabel("-" + resultLabel.text!)
+                    data[2] = "-" + data[2]
+                }
+                else if (resultLabel.text?.characters.count)! < 7  && data.count == 3 && (resultLabel.text?.characters.first)! == "-" {
+                    updateResultLabel(resultLabel.text!.replacingOccurrences(of: "-", with: ""))
+                    data[2] = data[2].replacingOccurrences(of: "-", with: "")
+                }
+                else if (resultLabel.text?.characters.first)! == "-" && data.count == 1 {
                     updateResultLabel(resultLabel.text!.replacingOccurrences(of: "-", with: ""))
                     data[0] = data[0].replacingOccurrences(of: "-", with: "")
                 }
-                else if (resultLabel.text?.characters.count)! < 7 {
+                else if (resultLabel.text?.characters.count)! < 7  && data.count == 1 && (resultLabel.text?.characters.first)! != "-"{
                     updateResultLabel("-" + resultLabel.text!)
                     data[0] = "-" + data[0]
                 }
+            
             case "+":
                 if (data.count) == 3 {
                     updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
                     if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
                         updateResultLabel(String((data.first! as NSString).integerValue))
-                    } else {
+                    }
+                    else {
                         updateResultLabel(data.first!)
                     }
-                    print("length: " + String(data.count))
                 }
-                print(data.first!)
                 updateSomeDataStructure(sender.content)
+            
             case "-":
-                if (data.count) == 3 {
-                    updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
-                    if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
-                        updateResultLabel(String((data.first! as NSString).integerValue))
-                    } else {
-                        updateResultLabel(data.first!)
-                    }
-                    print("length: " + String(data.count))
+                //add a negative if first character being added
+                if (resultLabel.text?.characters.count)! == 1 && resultLabel.text! == "0" && data.count == 0 {
+                    updateSomeDataStructure(sender.content)
+                    updateResultLabel(sender.content)
                 }
-                print(data.first!)
-                updateSomeDataStructure(sender.content)
+                //if first operand exists, just append the operator to the list
+                else if (resultLabel.text?.characters.count)! < 7 && data.count == 1 {
+                    updateSomeDataStructure(sender.content)
+                }
+                //if just first arg and operator exist, add third arg
+                else if (data.count) == 3 {
+    
+                    //if second arg just _, keep adding numbers to it before simplifying
+                    if data[2] != "-" {
+                        updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
+                        if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
+                            updateResultLabel(String((data.first! as NSString).integerValue))
+                        }
+                        else {
+                            updateResultLabel(data.first!)
+                        }
+                        updateSomeDataStructure(sender.content)
+                    }
+                }
+                else if data.count == 2 {
+                    updateSomeDataStructure(sender.content)
+                    updateResultLabel(sender.content)
+                }
+            
             case "*":
                 if (data.count) == 3 {
+                    //update the structure to have the simplified arg only
                     updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
                     if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
                         updateResultLabel(String((data.first! as NSString).integerValue))
-                    } else {
+                    }
+                    else {
                         updateResultLabel(data.first!)
                     }
-                    print("length: " + String(data.count))
                 }
-                print(data.first!)
                 updateSomeDataStructure(sender.content)
+            
             case "/":
                 if (data.count) == 3 {
                     updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
                     if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
                         updateResultLabel(String((data.first! as NSString).integerValue))
-                    } else {
+                    }
+                    else {
                         updateResultLabel(data.first!)
                     }
-                    print("length: " + String(data.count))
                 }
-                print(data.first!)
                 updateSomeDataStructure(sender.content)
+            
             case "=":
                 if (data.count) == 3 {
                     updateSomeDataStructure(String(calculate(a: data.removeFirst(), b: data.remove(at: 1), operation: data.remove(at: 0))))
                     if (data.first! as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
                         updateResultLabel(String((data.first! as NSString).integerValue))
-                    } else {
+                    }
+                    else {
                         updateResultLabel(data.first!)
                     }
-                    print("length: " + String(data.count))
                 }
-                print(data.first!)
+                else if data.count == 2 {
+                    let a = data.first!
+                    data.removeAll()
+                    updateSomeDataStructure(a)
+                    if (a as NSString).doubleValue.truncatingRemainder(dividingBy: 1.0) == 0.0 {
+                        updateResultLabel(String((a as NSString).integerValue))
+                    }
+                    else {
+                        updateResultLabel(a)
+                    }
+                }
             default:
                 return
+            
         }
     }
     
     // REQUIRED: The responder to a number or operator button being pressed.
     func buttonPressed(_ sender: CustomButton) {
-       // Fill me in!
-       
+
+        switch sender.content {
+            case ".":
+                print(". pressed")
+                if (resultLabel.text?.characters.count)! == 1 && resultLabel.text! == "0" && data.count == 0 {
+                    updateSomeDataStructure(resultLabel.text! + sender.content)
+                    updateResultLabel(resultLabel.text! + sender.content)
+                }
+                //extend a first number by adding a "."
+                else if (resultLabel.text?.characters.count)! < 7 && data.count == 1 && !resultLabel.text!.contains(".") {
+                    updateResultLabel(resultLabel.text! + sender.content)
+                    data[0] = data[0] + sender.content
+                }
+                //extend a second number by adding a "." after "-" sign
+                else if (resultLabel.text?.characters.count)! < 7 && data.count == 3 && data[2] == "-" && !data[2].contains("."){
+                    updateResultLabel(resultLabel.text! + "0" + sender.content)
+                    data[2] = data[2] + "0" + sender.content
+                }
+                //extend a second number by adding a "."
+                else if (resultLabel.text?.characters.count)! < 7 && data.count == 3 && !resultLabel.text!.contains(".") {
+                    updateResultLabel(resultLabel.text! + sender.content)
+                    data[2] = data[2] + sender.content
+                }
+                //add second operand
+                else if data.count == 2 {
+                    updateSomeDataStructure(sender.content)
+                    updateResultLabel("0" + sender.content)
+                }
+                //extend second operand if already exists
+                else if data.count == 3 && data[2].characters.count < 7 && !data[2].contains(".") && data[2] == "-" {
+                    updateResultLabel(resultLabel.text! + sender.content)
+                    data[2] = data[2] + "0" + sender.content
+                }
+            
+            case "0":
+                print("0 pressed")
+                //add the first digit after cleared or first time
+                if (resultLabel.text?.characters.count)! == 1 && resultLabel.text! == "0"  && data.count == 0 {
+                    updateResultLabel(sender.content)
+                    updateSomeDataStructure(sender.content)
+                }
+                //extend first operand's digits
+                else if (resultLabel.text?.characters.count)! < 7 && data.count == 1 {
+                    updateResultLabel(resultLabel.text! + sender.content)
+                    data[0] = data[0] + sender.content
+                }
+                //add second operand
+                else if data.count == 2 {
+                    updateResultLabel(sender.content)
+                    updateSomeDataStructure(sender.content)
+                }
+                //extend second operand if already exists
+                else if data.count == 3 && (resultLabel.text?.characters.count)! < 7 {
+                    updateResultLabel(resultLabel.text! + sender.content)
+                    data[2] = data[2] + sender.content
+                }
+
+        default:
+                return
+        }
     }
     
     // IMPORTANT: Do NOT change any of the code below.
